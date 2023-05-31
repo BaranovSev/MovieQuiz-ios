@@ -43,6 +43,11 @@
                                         <constraints>
                                             <constraint firstAttribute="width" secondItem="6W2-fu-s0a" secondAttribute="height" multiplier="2:3" id="TZP-7Y-Qoc"/>
                                         </constraints>
+                                        <userDefinedRuntimeAttributes>
+                                            <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                                <integer key="value" value="20"/>
+                                            </userDefinedRuntimeAttribute>
+                                        </userDefinedRuntimeAttributes>
                                     </imageView>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Рейтинг этого фильма меньше, чем 5?" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Gdf-eN-QjM" userLabel="Question Label">
                                         <rect key="frame" x="0.0" y="624.5" width="374" height="99.5"/>
@@ -66,6 +71,9 @@
                                                         <integer key="value" value="15"/>
                                                     </userDefinedRuntimeAttribute>
                                                 </userDefinedRuntimeAttributes>
+                                                <connections>
+                                                    <action selector="noButtonClicked:" destination="BYZ-38-t0r" eventType="touchUpInside" id="9hT-0b-i8Q"/>
+                                                </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="k3Q-B4-4Jz" userLabel="Yes Button">
                                                 <rect key="frame" x="197" y="0.0" width="177" height="60"/>
@@ -80,6 +88,9 @@
                                                         <integer key="value" value="15"/>
                                                     </userDefinedRuntimeAttribute>
                                                 </userDefinedRuntimeAttributes>
+                                                <connections>
+                                                    <action selector="yesButtonClicked:" destination="BYZ-38-t0r" eventType="touchUpInside" id="dqu-3J-S1X"/>
+                                                </connections>
                                             </button>
                                         </subviews>
                                         <constraints>
@@ -98,6 +109,14 @@
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="SVF-tt-bie" secondAttribute="trailing" constant="20" id="sdZ-k3-vDp"/>
                         </constraints>
                     </view>
+                    <connections>
+                        <outlet property="counterLabel" destination="amO-Dd-YPL" id="GO6-u6-fP1"/>
+                        <outlet property="imageView" destination="6W2-fu-s0a" id="TJI-Xj-Z4i"/>
+                        <outlet property="noButton" destination="MzQ-vK-Dmy" id="b3J-kt-FJn"/>
+                        <outlet property="questionTitleLabel" destination="Ag3-Mq-SYk" id="N3R-zv-nK4"/>
+                        <outlet property="textLabel" destination="Gdf-eN-QjM" id="Mqn-PD-e6W"/>
+                        <outlet property="yesButton" destination="k3Q-B4-4Jz" id="Niq-mL-wLc"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
