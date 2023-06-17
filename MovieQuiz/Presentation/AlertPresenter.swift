@@ -8,7 +8,7 @@
 import UIKit
 
 class AlertPresenter {
-    var onViewController: MovieQuizViewController?
+    weak var onViewController: MovieQuizViewController?
     
     func showAlert(alert result: AlertModel) {
         let alert = UIAlertController(
