@@ -10,7 +10,7 @@ import Foundation
 protocol StatisticService {
     var totalAccuracy: Double { get }
     var gamesCount: Int { get set }
-    var bestGame: GameRecord { get }
+    var bestGame: GameRecord { get set }
     func store(correct count: Int, total amount: Int) 
 }
 
@@ -20,9 +20,46 @@ final class StatisticServiceImplementation: StatisticService {
         case correct, total, bestGame, gamesCount
     }
     
+    private var correct: Int {
+        get {
+            guard let data = userDefaults.data(forKey: Keys.correct.rawValue),
+                  let record = try? JSONDecoder().decode(Int.self, from: data) else {
+                return 0
+            }
+            
+            return record
+        }
+        
+        set {
+            guard let data = try? JSONEncoder().encode(newValue) else {
+                return
+            }
+            
+            userDefaults.set(data, forKey: Keys.correct.rawValue)
+        }
+    }
+    
+    private var total: Int {
+        get {
+            guard let data = userDefaults.data(forKey: Keys.total.rawValue),
+                  let record = try? JSONDecoder().decode(Int.self, from: data) else {
+                return 0
+            }
+            
+            return record
+        }
+        
+        set {
+            guard let data = try? JSONEncoder().encode(newValue) else {
+                return
+            }
+            userDefaults.set(data, forKey: Keys.total.rawValue)
+        }
+    }
+    
     var totalAccuracy: Double {
         get {
-            return 0.0
+            return Double(correct)/Double(total)*100.0
         }
     }
     
@@ -30,16 +67,18 @@ final class StatisticServiceImplementation: StatisticService {
         get {
             guard let data = userDefaults.data(forKey: Keys.gamesCount.rawValue),
                   let record = try? JSONDecoder().decode(Int.self, from: data) else {
-                let record = 0
-                userDefaults.set(record, forKey: Keys.gamesCount.rawValue)
-                return record
+                return 0
             }
             
             return record
         }
 
         set {
-            userDefaults.set(newValue, forKey: Keys.gamesCount.rawValue)
+            guard let data = try? JSONEncoder().encode(newValue) else {
+                return
+            }
+            
+            userDefaults.set(data, forKey: Keys.gamesCount.rawValue)
         }
     }
     
@@ -68,11 +107,9 @@ final class StatisticServiceImplementation: StatisticService {
         if  bestGame < newResult  {
             bestGame = newResult
         }
-        gamesCount = gamesCount + 1
-        userDefaults.set(gamesCount, forKey: Keys.gamesCount.rawValue)
         
+        gamesCount += 1
+        correct += count
+        total += amount
     }
-    
-    
-    
 }

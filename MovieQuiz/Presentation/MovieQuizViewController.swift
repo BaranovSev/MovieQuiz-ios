@@ -36,10 +36,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private var currentQuestion: QuizQuestion?
     private var currentQuestionIndex = 0
     private var correctAnswers = 0
-    private let statisticService = StatisticServiceImplementation()
-
-//    private var allGamesResults: [GameResult] = []
-    
+    private let statisticService: StatisticService = StatisticServiceImplementation()
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -47,13 +44,11 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         setUpFonts()
         questionFactory = QuestionFactory(delegate: self)
         questionFactory?.requestNextQuestion()
-        //        print(NSHomeDirectory()) узнаем путь к домашней дирректории устройства
         
         var documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         let fileName = "top250MoviesIMDB.json"
         documentsURL.appendPathComponent(fileName)
         let jsonString = try? String(contentsOf: documentsURL)
-        //        print(jsonString)
         guard let jsonString = jsonString else {
             return
         }
@@ -64,7 +59,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         
         do {
             let top = try JSONDecoder().decode(Top.self, from: data)
-            print(top)
+            print(top)   // эта строчка спами в терминал все 250 фильмов
         } catch {
             print("Failed to parse: \(error.localizedDescription)")
         }
@@ -122,17 +117,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     private func showNextQuestionOrResults() {
         if currentQuestionIndex == questionsAmount - 1 {
-//            allGamesResults.append(GameResult(correctAnswers, questionsAmount))
-//            let greatestResult = allGamesResults.max{ a, b in a.correctAnswers < b.correctAnswers }
-//            let summOfResults = Double(allGamesResults.compactMap{$0.correctAnswers}.reduce(0, +))
-//            let sumOfQuestions = Double(allGamesResults.compactMap{$0.questionsTotal}.reduce(0, +))
-//            let percentage = summOfResults * 100.0 / sumOfQuestions
-//            let formatedPercentage = NSString(format: "%.2f", percentage)
-//            guard let greatestResult = greatestResult else {
-//                return
-//            }
             statisticService.store(correct: correctAnswers, total: questionsAmount)
-
             let text = """
             Ваш результат: \(correctAnswers)/\(questionsAmount)
             Количество сыгранных квизов: \(statisticService.gamesCount)
@@ -156,63 +141,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         }
     }
     
-//    private func getMovie(from jsonString: String) -> Movie? {
-//        var movie: Movie? = nil
-//        do {
-//            guard let data = jsonString.data(using: .utf8) else {
-//                return nil
-//            }
-//            
-//            let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-//
-//            guard let json = json,
-//                  let id = json["id"] as? String,
-//                  let title = json["title"] as? String,
-//                  let year = json["year"] as? String,
-//                  let image = json["image"] as? String,
-//                  let releaseDate = json["releaseDate"] as? String,
-//                  let runtimeMins = json["runtimeMins"] as? String,
-//                  let directors = json["directors"] as? String,
-//                  let actorList = json["actorList"] as? [Any] else {
-//                return nil
-//            }
-//
-//            var actors: [Actor] = []
-//
-//            for actor in actorList {
-//                guard let actor = actor as? [String: Any],
-//                      let id = actor["id"] as? String,
-//                      let image = actor["image"] as? String,
-//                      let name = actor["name"] as? String,
-//                      let asCharacter = actor["asCharacter"] as? String else {
-//                    return nil
-//                }
-//                
-//                let mainActor = Actor(id: id,
-//                                      image: image,
-//                                      name: name,
-//                                      asCharacter: asCharacter)
-//                actors.append(mainActor)
-//            }
-//            
-//            movie = Movie(id: id,
-//                          title: title,
-//                          year: year,
-//                          image: image,
-//                          releaseDate: releaseDate,
-//                          runtimeMins: runtimeMins,
-//                          directors: directors,
-//                          actorList: actors)
-//        } catch {
-//            print("Failed to parse: \(jsonString)")
-//        }
-//
-//        return movie
-//    }
-    
+
     // MARK: - Helpers
-    //move both func to the Helpers folder in future
-    //troubleshooting with custom fonts
     private func setUpFonts(){
         questionTitleLabel.font = UIFont(name: "YSDisplay-Medium", size: 20.0)
         counterLabel.font = UIFont(name: "YSDisplay-Medium", size: 20.0)
@@ -226,68 +156,3 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         noButton.isEnabled.toggle()
     }
 }
- 
-
-/*
- Mock-данные
- 
- 
- Картинка: The Godfather
- Настоящий рейтинг: 9,2
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
- 
- 
- Картинка: The Dark Knight
- Настоящий рейтинг: 9
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
- 
- 
- Картинка: Kill Bill
- Настоящий рейтинг: 8,1
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
- 
- 
- Картинка: The Avengers
- Настоящий рейтинг: 8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
- 
- 
- Картинка: Deadpool
- Настоящий рейтинг: 8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
- 
- 
- Картинка: The Green Knight
- Настоящий рейтинг: 6,6
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
- 
- 
- Картинка: Old
- Настоящий рейтинг: 5,8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
- 
- 
- Картинка: The Ice Age Adventures of Buck Wild
- Настоящий рейтинг: 4,3
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
- 
- 
- Картинка: Tesla
- Настоящий рейтинг: 5,1
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
- 
- 
- Картинка: Vivarium
- Настоящий рейтинг: 5,8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
- */
