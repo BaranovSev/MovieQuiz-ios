@@ -11,27 +11,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     @IBOutlet weak private var yesButton: UIButton!
     @IBOutlet weak private var activityIndicator: UIActivityIndicatorView!
     
-    // MARK: - @IBActions
-    @IBAction private func noButtonClicked(_ sender: UIButton) {
-        guard let currentQuestion = currentQuestion else {
-            return
-        }
-        
-        let currentQuestionAnswer = currentQuestion.correctAnswer
-        let userAnswer = false
-        showAnswerResult(isCorrect: currentQuestionAnswer == userAnswer)
-    }
-    
-    @IBAction private func yesButtonClicked(_ sender: UIButton) {
-        guard let currentQuestion = currentQuestion else {
-            return
-        }
-        
-        let currentQuestionAnswer = currentQuestion.correctAnswer
-        let userAnswer = true
-        showAnswerResult(isCorrect: currentQuestionAnswer == userAnswer)
-    }
-    
     private let questionsAmount: Int = 10
     private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
@@ -47,7 +26,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         setUpFonts()
-        questionFactory = QuestionFactory(delegate: self)
+        showLoadingIndicator()
+        questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+        questionFactory?.loadData()
         questionFactory?.requestNextQuestion()
         
         var documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
@@ -83,10 +64,19 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         }
     }
     
+    func didLoadDataFromServer() {
+        hideLoadingIndicator()
+        questionFactory?.requestNextQuestion()
+    }
+
+    func didFailToLoadData(with error: Error) {
+        showNetworkError(message: error.localizedDescription)
+    }
+    
     // MARK: - Private functions
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
         let questionStep = QuizStepViewModel(
-            image: UIImage(named: model.image) ?? UIImage(),
+            image: UIImage(data: model.image) ?? UIImage(),
             question: model.text,
             questionNumber: "\(currentQuestionIndex+1)/\(questionsAmount)"
         )
@@ -129,8 +119,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(statisticService.bestGame.date.dateTimeString))
             Средняя точность: \(NSString(format: "%.2f", statisticService.totalAccuracy))%
             """
-//            currentQuestionIndex = 0
-//            correctAnswers = 0
             
             let alertModel = AlertModel(
                 title: "Раунд окончен!",
@@ -148,16 +136,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             currentQuestionIndex += 1
             questionFactory?.requestNextQuestion()
         }
-    }
-    
-    private func showLoadingIndicator() {
-        activityIndicator.isHidden = false
-        activityIndicator.startAnimating()
-    }
-    
-    private func hideLoadingIndicator() {
-        activityIndicator.isHidden = true
-        activityIndicator.stopAnimating()
     }
     
     private func showNetworkError(message: String) {
@@ -190,5 +168,36 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private func buttonsToggle(){
         yesButton.isEnabled.toggle()
         noButton.isEnabled.toggle()
+    }
+    
+    private func showLoadingIndicator() {
+        activityIndicator.isHidden = false
+        activityIndicator.startAnimating()
+    }
+    
+    private func hideLoadingIndicator() {
+        activityIndicator.isHidden = true
+        activityIndicator.stopAnimating()
+    }
+    
+    // MARK: - @IBActions
+    @IBAction private func noButtonClicked(_ sender: UIButton) {
+        guard let currentQuestion = currentQuestion else {
+            return
+        }
+        
+        let currentQuestionAnswer = currentQuestion.correctAnswer
+        let userAnswer = false
+        showAnswerResult(isCorrect: currentQuestionAnswer == userAnswer)
+    }
+    
+    @IBAction private func yesButtonClicked(_ sender: UIButton) {
+        guard let currentQuestion = currentQuestion else {
+            return
+        }
+        
+        let currentQuestionAnswer = currentQuestion.correctAnswer
+        let userAnswer = true
+        showAnswerResult(isCorrect: currentQuestionAnswer == userAnswer)
     }
 }
