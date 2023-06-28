@@ -9,6 +9,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     @IBOutlet weak private var textLabel: UILabel!
     @IBOutlet weak private var noButton: UIButton!
     @IBOutlet weak private var yesButton: UIButton!
+    @IBOutlet weak private var activityIndicator: UIActivityIndicatorView!
     
     // MARK: - @IBActions
     @IBAction private func noButtonClicked(_ sender: UIButton) {
@@ -37,6 +38,10 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private var currentQuestionIndex = 0
     private var correctAnswers = 0
     private let statisticService: StatisticService = StatisticServiceImplementation()
+    
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -122,18 +127,22 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             Ваш результат: \(correctAnswers)/\(questionsAmount)
             Количество сыгранных квизов: \(statisticService.gamesCount)
             Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(statisticService.bestGame.date.dateTimeString))
-            Средняя точность: \(statisticService.totalAccuracy)%
+            Средняя точность: \(NSString(format: "%.2f", statisticService.totalAccuracy))%
             """
-            currentQuestionIndex = 0
-            correctAnswers = 0
-            guard let questionFactory = questionFactory else {
-                return
-            }
+//            currentQuestionIndex = 0
+//            correctAnswers = 0
             
             let alertModel = AlertModel(
+                title: "Раунд окончен!",
                 message: text,
-                completion: questionFactory.requestNextQuestion()
-            )
+                buttonText: "Сыграть еще раз"
+            ) { [weak self] in
+                guard let self = self else { return }
+                
+                self.currentQuestionIndex = 0
+                self.correctAnswers = 0
+                self.questionFactory?.requestNextQuestion()
+            }
             AlertPresenter(onViewController: self).showAlert(alert: alertModel)
         } else {
             currentQuestionIndex += 1
@@ -141,6 +150,33 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         }
     }
     
+    private func showLoadingIndicator() {
+        activityIndicator.isHidden = false
+        activityIndicator.startAnimating()
+    }
+    
+    private func hideLoadingIndicator() {
+        activityIndicator.isHidden = true
+        activityIndicator.stopAnimating()
+    }
+    
+    private func showNetworkError(message: String) {
+        hideLoadingIndicator()
+        
+        let model = AlertModel(
+            title: "Ошибка",
+            message: message,
+            buttonText: "Поробовать еще раз"
+        ) { [weak self] in
+            guard let self = self else { return }
+            
+            self.currentQuestionIndex = 0
+            self.correctAnswers = 0
+            self.questionFactory?.requestNextQuestion()
+        }
+        
+        AlertPresenter(onViewController: self).showAlert(alert: model)
+    }
 
     // MARK: - Helpers
     private func setUpFonts(){
