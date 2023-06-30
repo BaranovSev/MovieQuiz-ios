@@ -9,27 +9,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     @IBOutlet weak private var textLabel: UILabel!
     @IBOutlet weak private var noButton: UIButton!
     @IBOutlet weak private var yesButton: UIButton!
-    
-    // MARK: - @IBActions
-    @IBAction private func noButtonClicked(_ sender: UIButton) {
-        guard let currentQuestion = currentQuestion else {
-            return
-        }
-        
-        let currentQuestionAnswer = currentQuestion.correctAnswer
-        let userAnswer = false
-        showAnswerResult(isCorrect: currentQuestionAnswer == userAnswer)
-    }
-    
-    @IBAction private func yesButtonClicked(_ sender: UIButton) {
-        guard let currentQuestion = currentQuestion else {
-            return
-        }
-        
-        let currentQuestionAnswer = currentQuestion.correctAnswer
-        let userAnswer = true
-        showAnswerResult(isCorrect: currentQuestionAnswer == userAnswer)
-    }
+    @IBOutlet weak private var activityIndicator: UIActivityIndicatorView!
     
     private let questionsAmount: Int = 10
     private var questionFactory: QuestionFactoryProtocol?
@@ -38,11 +18,17 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private var correctAnswers = 0
     private let statisticService: StatisticService = StatisticServiceImplementation()
     
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setUpFonts()
-        questionFactory = QuestionFactory(delegate: self)
+        showLoadingIndicator()
+        questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+        questionFactory?.loadData()
         questionFactory?.requestNextQuestion()
         
         var documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
@@ -78,10 +64,19 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         }
     }
     
+    func didLoadDataFromServer() {
+        hideLoadingIndicator()
+        questionFactory?.requestNextQuestion()
+    }
+
+    func didFailToLoadData(with error: Error) {
+        showNetworkError(message: error.localizedDescription)
+    }
+    
     // MARK: - Private functions
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
         let questionStep = QuizStepViewModel(
-            image: UIImage(named: model.image) ?? UIImage(),
+            image: UIImage(data: model.image) ?? UIImage(),
             question: model.text,
             questionNumber: "\(currentQuestionIndex+1)/\(questionsAmount)"
         )
@@ -122,18 +117,20 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             Ваш результат: \(correctAnswers)/\(questionsAmount)
             Количество сыгранных квизов: \(statisticService.gamesCount)
             Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(statisticService.bestGame.date.dateTimeString))
-            Средняя точность: \(statisticService.totalAccuracy)%
+            Средняя точность: \(NSString(format: "%.2f", statisticService.totalAccuracy))%
             """
-            currentQuestionIndex = 0
-            correctAnswers = 0
-            guard let questionFactory = questionFactory else {
-                return
-            }
             
             let alertModel = AlertModel(
+                title: "Раунд окончен!",
                 message: text,
-                completion: questionFactory.requestNextQuestion()
-            )
+                buttonText: "Сыграть еще раз"
+            ) { [weak self] in
+                guard let self = self else { return }
+                
+                self.currentQuestionIndex = 0
+                self.correctAnswers = 0
+                self.questionFactory?.requestNextQuestion()
+            }
             AlertPresenter(onViewController: self).showAlert(alert: alertModel)
         } else {
             currentQuestionIndex += 1
@@ -141,6 +138,24 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         }
     }
     
+    private func showNetworkError(message: String) {
+        hideLoadingIndicator()
+        
+        let model = AlertModel(
+            title: "Ошибка",
+            message: message,
+            buttonText: "Поробовать еще раз"
+        ) { [weak self] in
+            guard let self = self else { return }
+            
+            self.currentQuestionIndex = 0
+            self.correctAnswers = 0
+            self.questionFactory?.loadData()
+            self.questionFactory?.requestNextQuestion()
+        }
+        
+        AlertPresenter(onViewController: self).showAlert(alert: model)
+    }
 
     // MARK: - Helpers
     private func setUpFonts(){
@@ -154,5 +169,36 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private func buttonsToggle(){
         yesButton.isEnabled.toggle()
         noButton.isEnabled.toggle()
+    }
+    
+    private func showLoadingIndicator() {
+        activityIndicator.isHidden = false
+        activityIndicator.startAnimating()
+    }
+    
+    private func hideLoadingIndicator() {
+        activityIndicator.isHidden = true
+        activityIndicator.stopAnimating()
+    }
+    
+    // MARK: - @IBActions
+    @IBAction private func noButtonClicked(_ sender: UIButton) {
+        guard let currentQuestion = currentQuestion else {
+            return
+        }
+        
+        let currentQuestionAnswer = currentQuestion.correctAnswer
+        let userAnswer = false
+        showAnswerResult(isCorrect: currentQuestionAnswer == userAnswer)
+    }
+    
+    @IBAction private func yesButtonClicked(_ sender: UIButton) {
+        guard let currentQuestion = currentQuestion else {
+            return
+        }
+        
+        let currentQuestionAnswer = currentQuestion.correctAnswer
+        let userAnswer = true
+        showAnswerResult(isCorrect: currentQuestionAnswer == userAnswer)
     }
 }
