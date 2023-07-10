@@ -45,7 +45,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         
         do {
             let top = try JSONDecoder().decode(Top.self, from: data)
-            print(top)   // эта строчка спами в терминал все 250 фильмов
+            //print(top)   // эта строчка спами в терминал все 250 фильмов
         } catch {
             print("Failed to parse: \(error.localizedDescription)")
         }
