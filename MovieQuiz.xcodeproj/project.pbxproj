@@ -35,6 +35,7 @@
 		FDD6EC232A3883CE00874145 /* QuestionFactoryDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDD6EC222A3883CE00874145 /* QuestionFactoryDelegate.swift */; };
 		FDD82D6E2A39C3E500DE57D0 /* AlertModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDD82D6D2A39C3E500DE57D0 /* AlertModel.swift */; };
 		FDD82D702A39C50F00DE57D0 /* AlertPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDD82D6F2A39C50F00DE57D0 /* AlertPresenter.swift */; };
+		FDDC17412A602B2500191961 /* MovieQuizPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDDC17402A602B2500191961 /* MovieQuizPresenter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -87,6 +88,7 @@
 		FDD6EC222A3883CE00874145 /* QuestionFactoryDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionFactoryDelegate.swift; sourceTree = "<group>"; };
 		FDD82D6D2A39C3E500DE57D0 /* AlertModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertModel.swift; sourceTree = "<group>"; };
 		FDD82D6F2A39C50F00DE57D0 /* AlertPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertPresenter.swift; sourceTree = "<group>"; };
+		FDDC17402A602B2500191961 /* MovieQuizPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieQuizPresenter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -120,6 +122,7 @@
 				AD1ABAB52831907B00B3E448 /* MovieQuizViewController.swift */,
 				AD1ABAB72831907B00B3E448 /* Main.storyboard */,
 				FDD82D6F2A39C50F00DE57D0 /* AlertPresenter.swift */,
+				FDDC17402A602B2500191961 /* MovieQuizPresenter.swift */,
 			);
 			path = Presentation;
 			sourceTree = "<group>";
@@ -379,6 +382,7 @@
 				FDA97CF82A35E66300A91C28 /* QuizStepViewModel.swift in Sources */,
 				FDA97CFC2A35E69600A91C28 /* QuizQuestion.swift in Sources */,
 				FD9697262A3C78AC002F6557 /* StatisticService.swift in Sources */,
+				FDDC17412A602B2500191961 /* MovieQuizPresenter.swift in Sources */,
 				FDA97CF52A35E1F800A91C28 /* QuestionFactory.swift in Sources */,
 				AD77F5742857F8810062FB14 /* Date+Extensions.swift in Sources */,
 				AD1ABAB22831907B00B3E448 /* AppDelegate.swift in Sources */,
