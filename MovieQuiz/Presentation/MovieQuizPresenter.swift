@@ -9,17 +9,18 @@ import Foundation
 import UIKit
 
 final class MovieQuizPresenter: QuestionFactoryDelegate {
-    let questionsAmount: Int = 10
-    var currentQuestion: QuizQuestion?
+    private let questionsAmount: Int = 10
+    private var correctAnswers = 0
+    private var currentQuestion: QuizQuestion?
     private weak var viewController: MovieQuizViewController?
     private var currentQuestionIndex = 0
-    private let statisticService: StatisticService = StatisticServiceImplementation()
     private var questionFactory: QuestionFactoryProtocol?
-    var correctAnswers = 0
+    private let statisticService: StatisticService!
     
     init(viewController:MovieQuizViewController){
         self.viewController = viewController
         
+        statisticService = StatisticServiceImplementation()
         questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
         questionFactory?.loadData()
         viewController.showLoadingIndicator()
@@ -52,27 +53,10 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         questionFactory?.loadData()
     }
     
-    func isLastQuestion() -> Bool {
-        currentQuestionIndex == questionsAmount - 1
-    }
-    
     func restartGame() {
         currentQuestionIndex = 0
         correctAnswers = 0
         questionFactory?.requestNextQuestion()
-    }
-    
-    func switchToNextQuestion() {
-        currentQuestionIndex += 1
-    }
-    
-    func convert(model: QuizQuestion) -> QuizStepViewModel {
-        let questionStep = QuizStepViewModel(
-            image: UIImage(data: model.image) ?? UIImage(),
-            question: model.text,
-            questionNumber: "\(currentQuestionIndex+1)/\(questionsAmount)"
-        )
-        return questionStep
     }
     
     func yesButtonClicked() {
@@ -83,7 +67,39 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         didAnswer(isYes: false)
     }
     
-    func showNextQuestionOrResults() {
+    private func isLastQuestion() -> Bool {
+        currentQuestionIndex == questionsAmount - 1
+    }
+    
+    private func switchToNextQuestion() {
+        currentQuestionIndex += 1
+    }
+    
+    private func convert(model: QuizQuestion) -> QuizStepViewModel {
+        let questionStep = QuizStepViewModel(
+            image: UIImage(data: model.image) ?? UIImage(),
+            question: model.text,
+            questionNumber: "\(currentQuestionIndex+1)/\(questionsAmount)"
+        )
+        return questionStep
+    }
+    
+    private func proceedWithAnswer(isCorrect: Bool) {
+        didAnswer(isCorrectAnswer: isCorrect)
+        viewController?.buttonsToggle()
+        viewController?.highlightImageBorder(isCorrectAnswer: isCorrect)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            guard let self = self else {
+                return
+            }
+            
+            self.proceedToNextQuestionOrResults()
+            self.viewController?.buttonsToggle()
+        }
+    }
+    
+    private func proceedToNextQuestionOrResults() {
         if isLastQuestion() {
             statisticService.store(correct: correctAnswers, total: questionsAmount)
             
@@ -115,7 +131,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         }
     }
     
-    func didAnswer(isYes: Bool) {
+    private func didAnswer(isYes: Bool) {
         guard let currentQuestion = currentQuestion else {
             return
         }
@@ -123,10 +139,10 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         let currentQuestionAnswer = currentQuestion.correctAnswer
         let userAnswer = isYes
         
-        viewController?.showAnswerResult(isCorrect: currentQuestionAnswer == userAnswer)
+        proceedWithAnswer(isCorrect: currentQuestionAnswer == userAnswer)
     }
     
-    func didAnswer(isCorrectAnswer: Bool) {
+    private func didAnswer(isCorrectAnswer: Bool) {
         guard let currentQuestion = currentQuestion else {
             return
         }
