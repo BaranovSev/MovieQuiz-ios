@@ -1,6 +1,6 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
+final class MovieQuizViewController: UIViewController {
     
     // MARK: - @IBOutlets
     @IBOutlet weak private var counterLabel: UILabel!
@@ -11,10 +11,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     @IBOutlet weak private var yesButton: UIButton!
     @IBOutlet weak private var activityIndicator: UIActivityIndicatorView!
     
-    private var questionFactory: QuestionFactoryProtocol?
-    private var correctAnswers = 0
 //    private let statisticService: StatisticService = StatisticServiceImplementation()
-    private let presenter = MovieQuizPresenter()
+    private var presenter: MovieQuizPresenter!
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent
@@ -23,12 +21,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        presenter.viewController = self
+        presenter = MovieQuizPresenter(viewController: self)
         setUpFonts()
         showLoadingIndicator()
-        questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
-        questionFactory?.loadData()
-        questionFactory?.requestNextQuestion()
         
         var documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         let fileName = "top250MoviesIMDB.json"
@@ -50,19 +45,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         }
     }
     
-    // MARK: - QuestionFactoryDelegate
-    func didReceiveNextQuestion(question: QuizQuestion?) {
-        presenter.didReceiveNextQuestion(question: question)
-    }
-    
-    func didLoadDataFromServer() {
-        hideLoadingIndicator()
-        questionFactory?.requestNextQuestion()
-    }
 
-    func didFailToLoadData(with error: Error) {
-        showNetworkError(message: error.localizedDescription)
-    }
     
     // MARK: - Private functions
     
@@ -73,11 +56,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     }
     
     func showAnswerResult(isCorrect: Bool) {
-        if isCorrect {
-            correctAnswers += 1
-        }
-        
         buttonsToggle()
+        presenter.didAnswer(isCorrectAnswer: isCorrect)
         imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 8
         imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
@@ -88,14 +68,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             }
             
             self.imageView.layer.borderWidth = 0
-            self.presenter.correctAnswers = self.correctAnswers
-            self.presenter.questionFactory = self.questionFactory
             self.presenter.showNextQuestionOrResults()
             self.buttonsToggle()
         }
     }
     
-    private func showNetworkError(message: String) {
+    func showNetworkError(message: String) {
         hideLoadingIndicator()
         
         let model = AlertModel(
@@ -105,10 +83,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         ) { [weak self] in
             guard let self = self else { return }
             
-            self.presenter.resetQuestionIndex()
-            self.correctAnswers = 0
-            self.questionFactory?.loadData()
-            self.questionFactory?.requestNextQuestion()
+            self.presenter.loadDataAfterError()
+            self.presenter.restartGame()
         }
         
         AlertPresenter(onViewController: self).showAlert(alert: model)
@@ -128,12 +104,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         noButton.isEnabled.toggle()
     }
     
-    private func showLoadingIndicator() {
+    func showLoadingIndicator() {
         activityIndicator.isHidden = false
         activityIndicator.startAnimating()
     }
     
-    private func hideLoadingIndicator() {
+    func hideLoadingIndicator() {
         activityIndicator.isHidden = true
         activityIndicator.stopAnimating()
     }
