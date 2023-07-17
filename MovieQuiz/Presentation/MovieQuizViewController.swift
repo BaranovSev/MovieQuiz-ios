@@ -1,6 +1,18 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController {
+protocol MovieQuizViewControllerProtocol: AnyObject {
+    func show(quiz step: QuizStepViewModel)
+    func show(quiz result: QuizResultsViewModel)
+    
+    func highlightImageBorder(isCorrectAnswer: Bool)
+    
+    func showNetworkError(message: String)
+    
+    func showLoadingIndicator()
+    func hideLoadingIndicator()
+}
+
+final class MovieQuizViewController: UIViewController,MovieQuizViewControllerProtocol {
     
     // MARK: - @IBOutlets
     @IBOutlet weak private var counterLabel: UILabel!
@@ -31,6 +43,20 @@ final class MovieQuizViewController: UIViewController {
         counterLabel.text = step.questionNumber
         imageView.image = step.image
         textLabel.text = step.question
+    }
+    
+    func show(quiz result: QuizResultsViewModel) {
+        let model = AlertModel(
+            title: result.title,
+            message: result.text,
+            buttonText: result.buttonText
+        ) { [weak self] in
+            guard let self = self else { return }
+            
+            self.presenter.restartGame()
+        }
+        
+        AlertPresenter(onViewController: self).showAlert(alert: model)
     }
     
     func highlightImageBorder(isCorrectAnswer: Bool) {

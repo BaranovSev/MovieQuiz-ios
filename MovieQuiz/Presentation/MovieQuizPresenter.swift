@@ -17,8 +17,8 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     private var questionFactory: QuestionFactoryProtocol?
     private let statisticService: StatisticService!
     
-    init(viewController:MovieQuizViewController){
-        self.viewController = viewController
+    init(viewController:MovieQuizViewControllerProtocol){
+        self.viewController = viewController as? MovieQuizViewController
         
         statisticService = StatisticServiceImplementation()
         questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
@@ -75,7 +75,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         currentQuestionIndex += 1
     }
     
-    private func convert(model: QuizQuestion) -> QuizStepViewModel {
+    func convert(model: QuizQuestion) -> QuizStepViewModel {
         let questionStep = QuizStepViewModel(
             image: UIImage(data: model.image) ?? UIImage(),
             question: model.text,
@@ -110,21 +110,17 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
             Средняя точность: \(NSString(format: "%.2f", statisticService.totalAccuracy))%
             """
             
-            let alertModel = AlertModel(
+            let alertModel = QuizResultsViewModel(
                 title: "Раунд окончен!",
-                message: text,
+                text: text,
                 buttonText: "Сыграть еще раз"
-            ) { [weak self] in
-                guard let self = self else { return }
-                
-                self.restartGame()
-            }
+            )
             
             guard let viewController = self.viewController else {
                 return
             }
             
-            AlertPresenter(onViewController: viewController).showAlert(alert: alertModel)
+            viewController.show(quiz: alertModel)
         } else {
             self.switchToNextQuestion()
             questionFactory?.requestNextQuestion()
