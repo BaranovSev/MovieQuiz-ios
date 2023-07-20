@@ -10,6 +10,10 @@ import XCTest
 @testable import MovieQuiz
 
 final class MovieQuizViewControllerMock: MovieQuizViewControllerProtocol {
+    func buttonsToggle(toActive: Bool) {
+        
+    }
+    
     func show(quiz result: MovieQuiz.QuizResultsViewModel) {
         
     }

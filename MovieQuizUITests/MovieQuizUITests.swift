@@ -38,6 +38,8 @@ final class MovieQuizUITests: XCTestCase {
         let firstPosterData = firstPoster.screenshot().pngRepresentation
         
         app.buttons["Yes"].tap()
+        XCTAssertFalse(app.buttons["No"].isEnabled)
+        XCTAssertFalse(app.buttons["Yes"].isEnabled)
         sleep(3)
         
         let secondPoster = app.images["Poster"]
@@ -45,6 +47,8 @@ final class MovieQuizUITests: XCTestCase {
         
         XCTAssertNotEqual(firstPosterData, secondPosterData)
         XCTAssertEqual(indexLabel.label, "2/10")
+        XCTAssertTrue(app.buttons["No"].isEnabled)
+        XCTAssertTrue(app.buttons["Yes"].isEnabled)
     }
     
     func testNoButton() throws {
@@ -55,6 +59,8 @@ final class MovieQuizUITests: XCTestCase {
         let firstPosterData = firstPoster.screenshot().pngRepresentation
         
         app.buttons["No"].tap()
+        XCTAssertFalse(app.buttons["No"].isEnabled)
+        XCTAssertFalse(app.buttons["Yes"].isEnabled)
         sleep(3)
         
         let secondPoster = app.images["Poster"]
@@ -62,6 +68,8 @@ final class MovieQuizUITests: XCTestCase {
         
         XCTAssertNotEqual(firstPosterData, secondPosterData)
         XCTAssertEqual(indexLabel.label, "2/10")
+        XCTAssertTrue(app.buttons["No"].isEnabled)
+        XCTAssertTrue(app.buttons["Yes"].isEnabled)
     }
     
     func testGameAlert() {
@@ -101,13 +109,5 @@ final class MovieQuizUITests: XCTestCase {
         XCTAssertTrue(question.exists)
         XCTAssertTrue(noButton.exists)
         XCTAssertTrue(yesButton.exists)
-    }
-    
-    func testExample() throws {
-        // UI tests must launch the application that they test.
-        let app = XCUIApplication()
-        app.launch()
-
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
     }
 }
