@@ -68,7 +68,7 @@ final class MovieQuizViewController: UIViewController,MovieQuizViewControllerPro
     }
     
     func showNetworkError(message: String) {
-        hideLoadingIndicator()
+        //hideLoadingIndicator()
         
         let model = AlertModel(
             title: "Ошибка",

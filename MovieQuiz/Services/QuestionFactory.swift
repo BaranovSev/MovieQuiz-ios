@@ -7,56 +7,25 @@
 
 import Foundation
 
-class QuestionFactory: QuestionFactoryProtocol {
-// позаданию сказали моки пока что не удалять.
-    
-//    private let questions: [QuizQuestion] = [
-//        QuizQuestion(
-//            image: "The Godfather",
-//            text: "Рейтинг этого фильма больше чем 6?",
-//            correctAnswer: true),
-//        QuizQuestion(
-//            image: "The Dark Knight",
-//            text: "Рейтинг этого фильма больше чем 6?",
-//            correctAnswer: true),
-//        QuizQuestion(
-//            image: "Kill Bill",
-//            text: "Рейтинг этого фильма больше чем 6?",
-//            correctAnswer: true),
-//        QuizQuestion(
-//            image: "The Avengers",
-//            text: "Рейтинг этого фильма больше чем 6?",
-//            correctAnswer: true),
-//        QuizQuestion(
-//            image: "Deadpool",
-//            text: "Рейтинг этого фильма больше чем 6?",
-//            correctAnswer: true),
-//        QuizQuestion(
-//            image: "The Green Knight",
-//            text: "Рейтинг этого фильма больше чем 6?",
-//            correctAnswer: true),
-//        QuizQuestion(
-//            image: "Old",
-//            text: "Рейтинг этого фильма больше чем 6?",
-//            correctAnswer: false),
-//        QuizQuestion(
-//            image: "The Ice Age Adventures of Buck Wild",
-//            text: "Рейтинг этого фильма больше чем 6?",
-//            correctAnswer: false),
-//        QuizQuestion(
-//            image: "Tesla",
-//            text: "Рейтинг этого фильма больше чем 6?",
-//            correctAnswer: false),
-//        QuizQuestion(
-//            image: "Vivarium",
-//            text: "Рейтинг этого фильма больше чем 6?",
-//            correctAnswer: false),
-//    ]
-    
-    private var movies: [MostPopularMovie] = []
-    
-    private let moviesLoader: MoviesLoading
+public enum CustomError: Error {
+    case emptyItems(errorMessage: String)
+    case imageLoaderError
+}
 
+extension CustomError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .emptyItems(let errorMessage):
+            return NSLocalizedString(errorMessage, comment: "Client error")
+        case .imageLoaderError:
+            return NSLocalizedString("Image load error", comment: "Image load error")
+        }
+    }
+}
+
+class QuestionFactory: QuestionFactoryProtocol {
+    private var movies: [MostPopularMovie] = []
+    private let moviesLoader: MoviesLoading
     private weak var delegate: QuestionFactoryDelegate?
     
     func requestNextQuestion() {
@@ -64,13 +33,23 @@ class QuestionFactory: QuestionFactoryProtocol {
             guard let self = self else { return }
             let index = (0..<self.movies.count).randomElement() ?? 0
             
-            guard let movie = self.movies[safe: index] else { return }
+            guard let movie = self.movies[safe: index] else {
+                DispatchQueue.main.async {
+                    let error = CustomError.emptyItems(errorMessage: "Problems on server")
+                    self.delegate?.didFailToLoadData(with: error)
+                }
+                return
+            }
             
             var imageData = Data()
             do {
                 imageData = try Data(contentsOf: movie.resizedImageURL)
             } catch {
                 print("Failed to load image")
+                DispatchQueue.main.async {
+                    let error = CustomError.imageLoaderError
+                    self.delegate?.didFailToLoadData(with: error)
+                }
             }
             
             let rating = Float(movie.rating) ?? 0
