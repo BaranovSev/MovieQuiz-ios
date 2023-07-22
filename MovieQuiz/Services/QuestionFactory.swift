@@ -5,7 +5,7 @@
 //  Created by Stepan Baranov on 11.06.2023.
 //
 
-import Foundation
+import UIKit
 
 public enum CustomError: Error {
     case emptyItems(errorMessage: String)
@@ -23,52 +23,66 @@ extension CustomError: LocalizedError {
     }
 }
 
+//MARK: - Question logic
+
 class QuestionFactory: QuestionFactoryProtocol {
     private var movies: [MostPopularMovie] = []
     private let moviesLoader: MoviesLoading
     private weak var delegate: QuestionFactoryDelegate?
     
     func requestNextQuestion() {
-        DispatchQueue.global().async { [weak self] in
-            guard let self = self else { return }
-            let index = (0..<self.movies.count).randomElement() ?? 0
-            
-            guard let movie = self.movies[safe: index] else {
-                DispatchQueue.main.async {
-                    let error = CustomError.emptyItems(errorMessage: "Problems on server")
-                    self.delegate?.didFailToLoadData(with: error)
-                }
-                return
-            }
-            
-            var imageData = Data()
-            do {
-                imageData = try Data(contentsOf: movie.resizedImageURL)
-            } catch {
-                print("Failed to load image")
-                DispatchQueue.main.async {
-                    let error = CustomError.imageLoaderError
-                    self.delegate?.didFailToLoadData(with: error)
-                }
-            }
-            
-            let rating = Float(movie.rating) ?? 0
-            let lessThanRaring = (5...7).randomElement() ?? 0
-            let text = "Рейтинг этого фильма больше чем \(lessThanRaring)?"
-            let correctAnswer = rating > Float(lessThanRaring)
-            let question = QuizQuestion(
-                image: imageData,
-                text: text,
-                correctAnswer: correctAnswer
-            )
-            
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
+        //TODO: move to parameter
+        let index = (0..<self.movies.count).randomElement() ?? 0
+        guard let movie = self.movies[safe: index] else {
+            let error = CustomError.emptyItems(errorMessage: "Problems on server")
+            self.delegate?.didFailToLoadData(with: error)
+            return
+        }
+        
+        loadImageData(from: movie.resizedImageURL) { image in
+            if let image = image {
+                //TODO: Move to QuizQuestion
+                let rating = Float(movie.rating) ?? 0
+                let lessThanRaring = (5...7).randomElement() ?? 0
+                let question = QuizQuestion(
+                    //TODO: UIImage
+                    image: image,
+                    text: "Рейтинг этого фильма больше чем \(lessThanRaring)?",
+                    correctAnswer: rating > Float(lessThanRaring)
+                )
+                
                 self.delegate?.didReceiveNextQuestion(question: question)
+            } else {
+                print("Failed to load image")
             }
         }
     }
     
+    //TODO: move to image manager
+    //TODO: (UIImage?, Error?)
+    func loadImageData(from url: URL, completion: @escaping (Data?) -> Void) {
+        let session = URLSession.shared
+        let task = session.dataTask(with: url) { (data, response, error) in
+            if let error = error {
+                completion(nil)
+                DispatchQueue.main.async {
+                    self.delegate?.didFailToLoadData(with: error)
+                }
+                
+                return
+            }
+            
+            //TODO: uncomment
+            if let imageData = data {//, let image = UIImage(data: imageData) {
+                completion(data)
+            } else {
+                completion(nil)
+            }
+        }
+        task.resume()
+    }
+    
+    //TODO: move to image manager
     func loadData() {
         moviesLoader.loadMovies { [weak self] result in
             DispatchQueue.main.async {
