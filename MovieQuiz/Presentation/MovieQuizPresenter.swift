@@ -5,20 +5,19 @@
 //  Created by Stepan Baranov on 13.07.2023.
 //
 
-import Foundation
 import UIKit
 
 final class MovieQuizPresenter: QuestionFactoryDelegate {
     private let questionsAmount: Int = 10
     private var correctAnswers = 0
     private var currentQuestion: QuizQuestion?
-    private weak var viewController: MovieQuizViewController?
+    private weak var viewController: MovieQuizViewControllerProtocol?
     private var currentQuestionIndex = 0
     private var questionFactory: QuestionFactoryProtocol?
     private let statisticService: StatisticService!
     
     init(viewController:MovieQuizViewControllerProtocol){
-        self.viewController = viewController as? MovieQuizViewController
+        self.viewController = viewController
         
         statisticService = StatisticServiceImplementation()
         questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
@@ -86,7 +85,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     
     private func proceedWithAnswer(isCorrect: Bool) {
         didAnswer(isCorrectAnswer: isCorrect)
-        viewController?.buttonsToggle()
+        viewController?.buttonsToggle(toActive: false)
         viewController?.highlightImageBorder(isCorrectAnswer: isCorrect)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
@@ -95,7 +94,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
             }
             
             self.proceedToNextQuestionOrResults()
-            self.viewController?.buttonsToggle()
+            self.viewController?.buttonsToggle(toActive: true)
         }
     }
     

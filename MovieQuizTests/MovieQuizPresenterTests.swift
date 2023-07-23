@@ -33,6 +33,10 @@ final class MovieQuizViewControllerMock: MovieQuizViewControllerProtocol {
     func hideLoadingIndicator() {
         
     }
+    
+    func buttonsToggle(toActive: Bool) {
+        
+    }
 }
 
 final class MovieQuizPresenterTests: XCTestCase {
