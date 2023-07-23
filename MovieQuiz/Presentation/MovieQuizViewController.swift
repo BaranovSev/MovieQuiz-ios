@@ -10,6 +10,7 @@ protocol MovieQuizViewControllerProtocol: AnyObject {
     
     func showLoadingIndicator()
     func hideLoadingIndicator()
+    func buttonsToggle(toActive: Bool)
 }
 
 final class MovieQuizViewController: UIViewController,MovieQuizViewControllerProtocol {
@@ -34,6 +35,7 @@ final class MovieQuizViewController: UIViewController,MovieQuizViewControllerPro
         super.viewDidLoad()
         presenter = MovieQuizPresenter(viewController: self)
         setUpFonts()
+        activityIndicator.hidesWhenStopped = true
         showLoadingIndicator()
     }
     
@@ -83,7 +85,7 @@ final class MovieQuizViewController: UIViewController,MovieQuizViewControllerPro
     }
 
     // MARK: - Helpers
-    private func setUpFonts(){
+    private func setUpFonts() {
         questionTitleLabel.font = UIFont(name: "YSDisplay-Medium", size: 20.0)
         counterLabel.font = UIFont(name: "YSDisplay-Medium", size: 20.0)
         yesButton.titleLabel?.font = UIFont(name: "YSDisplay-Medium", size: 20.0)
@@ -91,9 +93,9 @@ final class MovieQuizViewController: UIViewController,MovieQuizViewControllerPro
         textLabel.font = UIFont(name: "YSDisplay-Bold", size: 23.0)
     }
     
-    func buttonsToggle(){
-        yesButton.isEnabled.toggle()
-        noButton.isEnabled.toggle()
+    func buttonsToggle(toActive: Bool) {
+        yesButton.isEnabled = toActive
+        noButton.isEnabled = toActive
     }
     
     func showLoadingIndicator() {
@@ -102,7 +104,6 @@ final class MovieQuizViewController: UIViewController,MovieQuizViewControllerPro
     }
     
     func hideLoadingIndicator() {
-        activityIndicator.isHidden = true
         activityIndicator.stopAnimating()
     }
     
