@@ -50,6 +50,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     // MARK: - Functions
     func loadDataAfterError() {
         questionFactory?.loadData()
+        questionFactory?.requestNextQuestion()
     }
     
     func restartGame() {

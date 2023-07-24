@@ -81,7 +81,6 @@ final class MovieQuizViewController: UIViewController,MovieQuizViewControllerPro
             
             self.showLoadingIndicator()
             self.presenter.loadDataAfterError()
-            self.presenter.restartGame()
         }
         
         AlertPresenter(onViewController: self).showAlert(alert: model)
