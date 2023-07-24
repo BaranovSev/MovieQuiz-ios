@@ -46,6 +46,7 @@ final class MovieQuizViewController: UIViewController,MovieQuizViewControllerPro
         counterLabel.text = step.questionNumber
         imageView.image = step.image
         textLabel.text = step.question
+        buttonsToggle(toActive: true)
     }
     
     func show(quiz result: QuizResultsViewModel) {
