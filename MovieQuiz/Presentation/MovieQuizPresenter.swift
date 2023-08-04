@@ -94,7 +94,6 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
             }
             
             self.proceedToNextQuestionOrResults()
-            self.viewController?.buttonsToggle(toActive: true)
         }
     }
     

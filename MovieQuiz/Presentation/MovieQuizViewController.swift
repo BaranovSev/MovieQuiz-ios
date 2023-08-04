@@ -41,10 +41,12 @@ final class MovieQuizViewController: UIViewController,MovieQuizViewControllerPro
     
     // MARK: - Private functions
     func show(quiz step: QuizStepViewModel) {
+        activityIndicator.stopAnimating()
         imageView.layer.borderColor = UIColor.clear.cgColor
         counterLabel.text = step.questionNumber
         imageView.image = step.image
         textLabel.text = step.question
+        buttonsToggle(toActive: true)
     }
     
     func show(quiz result: QuizResultsViewModel) {
@@ -77,8 +79,8 @@ final class MovieQuizViewController: UIViewController,MovieQuizViewControllerPro
         ) { [weak self] in
             guard let self = self else { return }
             
+            self.showLoadingIndicator()
             self.presenter.loadDataAfterError()
-            self.presenter.restartGame()
         }
         
         AlertPresenter(onViewController: self).showAlert(alert: model)
@@ -109,10 +111,12 @@ final class MovieQuizViewController: UIViewController,MovieQuizViewControllerPro
     
     // MARK: - @IBActions
     @IBAction private func noButtonClicked(_ sender: UIButton) {
+        activityIndicator.startAnimating()
         presenter.noButtonClicked()
     }
     
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
+        activityIndicator.startAnimating()
         presenter.yesButtonClicked()
     }
 }

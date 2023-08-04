@@ -7,6 +7,22 @@
 
 import Foundation
 
+enum CustomError: Error {
+    case emptyItems(errorMessage: String)
+    case imageLoaderError
+}
+
+extension CustomError: LocalizedError {
+    var errorDescription: String? {
+        switch self {
+        case .emptyItems(let errorMessage):
+            return NSLocalizedString(errorMessage, comment: "Client Error")
+        case .imageLoaderError:
+            return NSLocalizedString("Image loading error", comment: "Image loading error")
+        }
+    }
+}
+
 class QuestionFactory: QuestionFactoryProtocol {
     private var movies: [MostPopularMovie] = []
     private let moviesLoader: MoviesLoading
@@ -23,7 +39,11 @@ class QuestionFactory: QuestionFactoryProtocol {
             do {
                 imageData = try Data(contentsOf: movie.resizedImageURL)
             } catch {
-                print("Failed to load image")
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    self.delegate?.didFailToLoadData(with: CustomError.imageLoaderError)
+                }
+                return
             }
             
             let rating = Float(movie.rating) ?? 0
@@ -49,8 +69,12 @@ class QuestionFactory: QuestionFactoryProtocol {
                 guard let self = self else { return }
                 switch result {
                 case .success(let mostPopularMovies):
-                    self.movies = mostPopularMovies.items
-                    self.delegate?.didLoadDataFromServer()
+                    if mostPopularMovies.errorMessage.isEmpty {
+                        self.movies = mostPopularMovies.items
+                        self.delegate?.didLoadDataFromServer()
+                    } else {
+                        self.delegate?.didFailToLoadData(with: CustomError.emptyItems(errorMessage: "Client error"))
+                    }
                 case .failure(let error):
                     self.delegate?.didFailToLoadData(with: error)
                 }
